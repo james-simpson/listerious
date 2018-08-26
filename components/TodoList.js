@@ -1,18 +1,34 @@
 import React from 'react'
-import { View } from 'react-native'
+import { View, Text } from 'react-native'
 import { List, AddItemInput } from '.'
 import _ from 'lodash'
+import api from '../api'
 
-class DynamicList extends React.Component {
+class TodoList extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      items: [
-        { text: 'Noodles', completed: false },
-        { text: 'Tofu', completed: false },
-        { text: 'Soy sauce', completed: false },
-        { text: 'Ginger', completed: false }
-      ]
+      items: [],
+      loading: false,
+      updateInProgress: false
+    }
+
+    this.loadItems()
+  }
+
+  componentDidMount() {
+    setInterval(() => { this.loadItems() }, 1000)
+  }
+
+  loadItems () {
+    if (!this.state.updateInProgress) {
+      return api.getAll()
+        .then(response => {
+          this.setState({
+            items: response.data,
+            loading: false
+          })
+        })
     }
   }
 
@@ -34,42 +50,66 @@ class DynamicList extends React.Component {
     this.setState({ items: updatedItems }) 
   }
 
-  updateItemText (id, text) {
-    const items = this.state.items
+  updateItemName (id, name) {
     const updatedItems = this.state.items.map(item =>
       item.id === id
-        ? { ...item, text: text }
+        ? { ...item, name: name }
         : item
     )
     this.setState({ items: updatedItems })
   }
 
-  addItem (itemText) {
-    const item = { text: itemText, completed: false, id: _.uniqueId() }
+  addItem (itemName) {
+    const tempId = _.uniqueId()
+    const item = { name: itemName, completed: false, id: tempId }
     this.setState({
-      items: [ ...this.state.items, item ]
+      items: [ ...this.state.items, item ],
+      updateInProgress: true
     })
+
+    api.add(itemName)
+      .then(id => {
+        const updatedItems = this.state.items.map(item =>
+          item.id === tempId
+            ? { ...item, id: id }
+            : item
+        )
+        this.setState({
+          items: updatedItems,
+          updateInProgress: false
+        })
+      })
   }
 
   removeItem (id) {
     const updatedItems = this.state.items.filter(x => x.id !== id)
-    this.setState({ items: updatedItems })
+    this.setState({
+      items: updatedItems,
+      updateInProgress: true
+    })
+    api.delete(id).then(() => {
+      this.setState({ updateInProgress: false })
+    })
   }
 
   render () {
+    if (this.state.loading) {
+      return <Text style={{ fontSize: 20 }}>Loading...</Text>
+    }
+
     return (
       <View>
         {/* Todo items*/}
         <List
           items={this.openItems()}
           onCompletedChange={id => this.toggleItemCheckbox(id)}
-          onTextChange={(id, text) => this.updateItemText(id, text)}
+          onTextChange={(id, name) => this.updateItemName(id, name)}
           onDelete={id => this.removeItem(id)}
         />
         {/* Add a new item */}
         <AddItemInput
           style={{marginBottom: 20}}
-          onAdd={itemText => this.addItem(itemText)}
+          onAdd={itemName => this.addItem(itemName)}
         />
         {/* Completed items*/}
         <List
@@ -91,4 +131,4 @@ class DynamicList extends React.Component {
   }
 }
 
-export default DynamicList
+export default TodoList

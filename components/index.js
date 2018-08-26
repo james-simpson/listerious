@@ -1,11 +1,11 @@
 import AddItemInput from './AddItemInput'
-import DynamicList from './DynamicList'
+import TodoList from './TodoList'
 import List from './List'
 import ListItem from './ListItem'
 
 export {
   AddItemInput,
-  DynamicList,
+  TodoList,
   List,
   ListItem
 }

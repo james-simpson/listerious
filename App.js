@@ -1,6 +1,6 @@
 import React from 'react'
 import { StyleSheet, ScrollView, KeyboardAvoidingView } from 'react-native'
-import { DynamicList } from './components'
+import { TodoList } from './components'
 
 class App extends React.Component {
 
@@ -13,7 +13,7 @@ class App extends React.Component {
         {/* keyboardShouldPersistTaps='always' allows moving focus from
             one TextInput to another within a ScrollView in one touch */}
         <ScrollView keyboardShouldPersistTaps='always'>
-            <DynamicList/>
+            <TodoList/>
         </ScrollView>
       </KeyboardAvoidingView>
     )
